@@ -1,7 +1,35 @@
-import '../styles/globals.css'
+import { SessionProvider, useSession } from "next-auth/react";
+import Layout from "@/components/Layout";
+import Loading from "@/components/Loading";
+import "../styles/globals.css";
 
-function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
+export default function MyApp({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
+  return (
+    <SessionProvider session={session}>
+      <Layout>
+        {Component.auth ? (
+          <Auth>
+            <Component {...pageProps} />
+          </Auth>
+        ) : (
+          <Component {...pageProps} />
+        )}
+      </Layout>
+    </SessionProvider>
+  );
 }
 
-export default MyApp
+const Auth = ({ children }) => {
+  const { status } = useSession({
+    required: true,
+  });
+
+  if (status === "loading") {
+    return <Loading />;
+  }
+
+  return children;
+};
