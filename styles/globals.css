@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.loading {
+  opacity: 0;
+  transition: all 0.2s ease-in;
+}
+
+.loaded {
+  opacity: 1;
+  transition: all 0.2s ease-in;
+}
