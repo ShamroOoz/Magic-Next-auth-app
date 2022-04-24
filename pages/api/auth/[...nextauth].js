@@ -102,13 +102,12 @@ export default async function auth(req, res) {
           const { email, password } = credentials;
           const user = await User.findOne({ email });
           console.log({ user });
-          if (!user) throw new Error("NO user Found ...");
+          if (!user) return null;
           const isMatch = await bcrypt.compare(password, user.password);
-          if (!isMatch) throw new Error("Not a Valid credentials");
+          if (!isMatch) return null;
           if (user && isMatch) {
             return user;
           }
-          return null;
         } catch (error) {
           return null;
         }
