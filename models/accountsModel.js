@@ -31,6 +31,9 @@ const accountsSchema = new Schema(
     scope: {
       type: String,
     },
+    expires_at: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

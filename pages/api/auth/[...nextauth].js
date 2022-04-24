@@ -114,7 +114,6 @@ const auth = async (req, res) => {
         try {
           const { email, password } = credentials;
           const user = await User.findOne({ email });
-          console.log({ user });
           if (!user) return null;
           const isMatch = await bcrypt.compare(password, user.password);
           if (!isMatch) return null;
@@ -138,29 +137,23 @@ const auth = async (req, res) => {
         if (account.provider === "MagicLink") {
           return true;
         }
-        if (user && account && account.provider !== "credentials") {
-          if (
-            user &&
-            account &&
-            account.provider !== "credentials" &&
-            account.provider !== "MagicLink"
-          ) {
-            try {
-              const userdata = await User.findOne({ email: user.email });
-              const data = await accounts.findOne({ userId: userdata.id });
-              if (data) {
-                return true;
-              }
-              const newAccount = new accounts({
-                ...account,
-                userId: userdata.id,
-              });
-              await newAccount.save();
+        if (account.provider !== "credentials") {
+          try {
+            const userdata = await User.findOne({ email: user.email });
+            if (!userdata) return true;
+            const data = await accounts.find({ userId: userdata.id });
+            if (data && data.some((p) => p.provider === account.provider)) {
               return true;
-            } catch (error) {
-              console.log(error);
-              return false;
             }
+            const newAccount = new accounts({
+              ...account,
+              userId: userdata.id,
+            });
+            await newAccount.save();
+            return true;
+          } catch (error) {
+            console.log(error);
+            return false;
           }
         }
         if (user && user.emailVerified) {
@@ -192,7 +185,7 @@ const auth = async (req, res) => {
     pages: {
       signIn: "/auth/providers",
     },
-    // debug: process.env.NODE_ENV !== "production",
+    debug: process.env.NODE_ENV !== "production",
   });
 };
 
