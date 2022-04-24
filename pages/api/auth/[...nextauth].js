@@ -10,16 +10,24 @@ import nodemailer from "nodemailer";
 import Handlebars from "handlebars";
 import { readFileSync } from "fs";
 import path from "path";
-
-import User from "../../../models/userModel";
 import bcrypt from "bcrypt";
 
+import User from "@/models/userModel";
+
+// const transporter = nodemailer.createTransport({
+//   host: process.env.EMAIL_SERVER_HOST,
+//   port: process.env.EMAIL_SERVER_PORT,
+//   auth: {
+//     user: process.env.EMAIL_SERVER_USER,
+//     pass: process.env.EMAIL_SERVER_PASSWORD,
+//   },
+//   secure: true,
+// });
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST,
-  port: process.env.EMAIL_SERVER_PORT,
+  service: process.env.GOOGLE_EMAIL_SERVER_HOST,
   auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
+    user: process.env.GOOGLE_EMAIL_FROM,
+    pass: process.env.GOOGLE_EMAIL_SERVER_PASSWORD,
   },
   secure: true,
 });
@@ -86,14 +94,17 @@ export default async function auth(req, res) {
     CredentialsProvider({
       name: "Email",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        email: { label: "Username", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
         try {
           const { email, password } = credentials;
-          const user = await User.findOne({ email: email });
+          const user = await User.findOne({ email });
+          console.log({ user });
+          if (!user) throw new Error("NO user Found ...");
           const isMatch = await bcrypt.compare(password, user.password);
+          if (!isMatch) throw new Error("Not a Valid credentials");
           if (user && isMatch) {
             return user;
           }
@@ -112,7 +123,14 @@ export default async function auth(req, res) {
     },
     callbacks: {
       async signIn({ user, account, profile, email, credentials }) {
-        return true;
+        if (user && account && account.provider !== "credentials") {
+          return true;
+        }
+        if (user && user.emailVerified) {
+          return true;
+        }
+        // Or you can return a URL to redirect to:
+        return "http://localhost:3000/auth/confirm-email";
       },
       async redirect({ url, baseUrl }) {
         if (url.startsWith("/")) return `${baseUrl}${url}`;
@@ -135,5 +153,6 @@ export default async function auth(req, res) {
     pages: {
       signIn: "/auth/providers",
     },
+    debug: process.env.NODE_ENV !== "production",
   });
 }

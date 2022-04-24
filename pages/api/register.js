@@ -1,26 +1,13 @@
 import User from "../../models/userModel";
 import bcrypt from "bcrypt";
-import mongoose from "mongoose";
+import connectDB from "@/lib/connectDB";
 
-export default async (req, res) => {
+const handler = async (req, res) => {
   if (req.method !== "POST") {
     return res.end("This is Post Method....");
   }
 
   let { email, password } = req.body;
-
-  const uri = process.env.MONGODB_URI;
-  mongoose.connect(
-    uri,
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
-    (err) => {
-      if (err) throw err;
-      console.log("Connected to MongoDB");
-    }
-  );
 
   try {
     const user = await User.findOne({ email: email });
@@ -38,3 +25,5 @@ export default async (req, res) => {
     return res.status(403).json({ error: err.message });
   }
 };
+
+export default connectDB(handler);
