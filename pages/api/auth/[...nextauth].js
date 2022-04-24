@@ -13,6 +13,7 @@ import path from "path";
 import bcrypt from "bcrypt";
 
 import User from "@/models/userModel";
+import accounts from "@/models/accountsModel";
 
 // const transporter = nodemailer.createTransport({
 //   host: process.env.EMAIL_SERVER_HOST,
@@ -131,8 +132,31 @@ export default async function auth(req, res) {
     },
     callbacks: {
       async signIn({ user, account, profile, email, credentials }) {
-        if (user && account && account.provider !== "credentials") {
+        if (account.provider === "MagicLink") {
           return true;
+        }
+        if (user && account && account.provider !== "credentials") {
+          if (
+            user &&
+            account &&
+            account.provider !== "credentials" &&
+            account.provider !== "MagicLink"
+          ) {
+            try {
+              const userdata = await User.findOne({ email: user.email });
+              const data = await accounts.findOne({ userId: userdata.id });
+              if (!data) {
+                const newAccount = new accounts({
+                  ...account,
+                  userId: userdata.id,
+                });
+                await newAccount.save();
+              }
+              return true;
+            } catch (error) {
+              return false;
+            }
+          }
         }
         if (user && user.emailVerified) {
           return true;

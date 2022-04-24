@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { validationChecker } from "@/lib/helpers";
 import Loading from "@/components/Loading";
 import Link from "next/link";
@@ -123,4 +123,21 @@ export default function Login() {
       </div>
     </section>
   );
+}
+
+///try to fis it client side using useSession Hock
+export async function getServerSideProps(context) {
+  const Session = await getSession(context);
+
+  if (Session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {  },
+  };
 }
