@@ -3,14 +3,17 @@ import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import clientPromise from "@/lib/mongodb";
 import EmailProvider from "next-auth/providers/email";
 import nodemailer from "nodemailer";
 import Handlebars from "handlebars";
 import { readFileSync } from "fs";
 import path from "path";
 import bcrypt from "bcrypt";
+
+//DB
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import connectDB from "@/lib/connectDB";
+import clientPromise from "@/lib/mongodb";
 
 import User from "@/models/userModel";
 import accounts from "@/models/accountsModel";
@@ -82,7 +85,7 @@ const sendWelcomeEmail = async ({ user }) => {
   }
 };
 
-export default async function auth(req, res) {
+const auth = async (req, res) => {
   const providers = [
     EmailProvider({
       id: "MagicLink",
@@ -142,20 +145,14 @@ export default async function auth(req, res) {
             account.provider !== "credentials" &&
             account.provider !== "MagicLink"
           ) {
-            try {
-              const userdata = await User.findOne({ email: user.email });
-              const data = await accounts.findOne({ userId: userdata.id });
-              if (!data) {
-                const newAccount = new accounts({
-                  ...account,
-                  userId: userdata.id,
-                });
-                await newAccount.save();
-              }
+            const userdata = await User.findOne({ email: user.email });
+            const data = await accounts.findOne({ userId: userdata.id });
+            if (data) {
               return true;
-            } catch (error) {
-              return false;
             }
+            const newAccount = new accounts({ ...account, userId: user.id });
+            await newAccount.save();
+            return true;
           }
         }
         if (user && user.emailVerified) {
@@ -189,4 +186,6 @@ export default async function auth(req, res) {
     },
     debug: process.env.NODE_ENV !== "production",
   });
-}
+};
+
+export default connectDB(auth);

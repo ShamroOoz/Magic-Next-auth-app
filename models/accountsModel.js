@@ -1,5 +1,7 @@
 // Reference
 // https://github.com/nextauthjs/next-auth/blob/935c4f2f826089c18f08c3c1a6cd663d77ecd26f/src/adapters/typeorm/models/account.js
+//https://github.com/nextauthjs/next-auth/issues/296#issuecomment-647113363
+//https://github.com/nextauthjs/next-auth/issues/230#issuecomment-1036440563
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
