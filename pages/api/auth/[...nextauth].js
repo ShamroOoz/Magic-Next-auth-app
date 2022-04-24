@@ -24,7 +24,6 @@ import User from "@/models/userModel";
 //   secure: true,
 // });
 const transporter = nodemailer.createTransport({
-  // service: process.env.GOOGLE_EMAIL_SERVER_HOST,
   host: process.env.EMAIL_SERVER_HOST,
   port: process.env.EMAIL_SERVER_PORT,
   auth: {
@@ -32,24 +31,32 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GOOGLE_EMAIL_SERVER_PASSWORD,
   },
   secure: true,
+  ls: {
+    rejectUnAuthorized: true,
+  },
 });
 
 const emailsDir = path.resolve(process.cwd(), "emails");
 
-const sendVerificationRequest = ({ identifier, url }) => {
+const sendVerificationRequest = async ({ identifier, url }) => {
   const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
     encoding: "utf8",
   });
   const emailTemplate = Handlebars.compile(emailFile);
-  transporter.sendMail({
-    from: `"⚡ Magic NextAuth" ${process.env.EMAIL_FROM}`,
-    to: identifier,
-    subject: "Your sign-in link for Magic NextAuth",
-    html: emailTemplate({
-      signin_url: url,
-      email: identifier,
-    }),
-  });
+  try {
+    let info = await transporter.sendMail({
+      from: `"⚡ Magic NextAuth" ${process.env.EMAIL_FROM}`,
+      to: identifier,
+      subject: "Your sign-in link for Magic NextAuth",
+      html: emailTemplate({
+        signin_url: url,
+        email: identifier,
+      }),
+    });
+    console.log(`Message Sent: ${info.messageId}`);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const sendWelcomeEmail = async ({ user }) => {
