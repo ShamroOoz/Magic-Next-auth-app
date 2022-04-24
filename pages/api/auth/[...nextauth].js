@@ -24,7 +24,9 @@ import User from "@/models/userModel";
 //   secure: true,
 // });
 const transporter = nodemailer.createTransport({
-  service: process.env.GOOGLE_EMAIL_SERVER_HOST,
+  // service: process.env.GOOGLE_EMAIL_SERVER_HOST,
+  host: process.env.EMAIL_SERVER_HOST,
+  port: process.env.EMAIL_SERVER_PORT,
   auth: {
     user: process.env.GOOGLE_EMAIL_FROM,
     pass: process.env.GOOGLE_EMAIL_SERVER_PASSWORD,
