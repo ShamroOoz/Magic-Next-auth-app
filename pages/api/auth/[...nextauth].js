@@ -145,14 +145,22 @@ const auth = async (req, res) => {
             account.provider !== "credentials" &&
             account.provider !== "MagicLink"
           ) {
-            const userdata = await User.findOne({ email: user.email });
-            const data = await accounts.findOne({ userId: userdata.id });
-            if (data) {
+            try {
+              const userdata = await User.findOne({ email: user.email });
+              const data = await accounts.findOne({ userId: userdata.id });
+              if (data) {
+                return true;
+              }
+              const newAccount = new accounts({
+                ...account,
+                userId: userdata.id,
+              });
+              await newAccount.save();
               return true;
+            } catch (error) {
+              console.log(error);
+              return false;
             }
-            const newAccount = new accounts({ ...account, userId: user.id });
-            await newAccount.save();
-            return true;
           }
         }
         if (user && user.emailVerified) {
@@ -184,7 +192,7 @@ const auth = async (req, res) => {
     pages: {
       signIn: "/auth/providers",
     },
-    debug: process.env.NODE_ENV !== "production",
+    // debug: process.env.NODE_ENV !== "production",
   });
 };
 
