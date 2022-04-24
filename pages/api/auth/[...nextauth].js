@@ -130,7 +130,9 @@ export default async function auth(req, res) {
           return true;
         }
         // Or you can return a URL to redirect to:
-        return "http://localhost:3000/auth/confirm-email";
+        return process.env.NODE_ENV !== "production"
+          ? "http://localhost:3000/auth/confirm-email"
+          : "https://magic-next-auth-app.vercel.app/auth/confirm-email";
       },
       async redirect({ url, baseUrl }) {
         if (url.startsWith("/")) return `${baseUrl}${url}`;
