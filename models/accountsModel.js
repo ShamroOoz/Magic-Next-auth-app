@@ -7,10 +7,6 @@ const { Schema } = mongoose;
 
 const accountsSchema = new Schema(
   {
-    compoundId: {
-      type: String,
-      unique: true,
-    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "users",
